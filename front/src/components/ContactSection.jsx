@@ -27,22 +27,14 @@ export default function ContactSection() {
       return
     }
 
-    fetch('http://localhost:5000/api/contact', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          alert('Message sent successfully! We will get back to you soon.')
-          setForm({ firstName: '', lastName: '', email: '', phone: '', message: '' })
-          setErrors({})
-        } else {
-          alert('Error: ' + (data.message || 'Could not save your message.'))
-        }
-      })
-      .catch(() => alert('Unable to send message. Please try again later.'))
+    // For now, just show success message
+    // In production, integrate with EmailJS or similar service
+    alert('Thank you for your message! I will get back to you soon.\n\nFor immediate contact, please email: sumairaayimam@gmail.com')
+    setForm({ firstName: '', lastName: '', email: '', phone: '', message: '' })
+    setErrors({})
+    
+    // Optional: Log to console for testing
+    console.log('Form submitted:', form)
   }
 
   return (
