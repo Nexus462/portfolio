@@ -1,0 +1,31 @@
+{
+  "name": "sumairaa-portfolio",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Personal portfolio website for Sumairaa Yimam - Software Engineering Student",
+  "author": "Sumairaa Yimam <sumairaayimam@gmail.com>",
+  "homepage": "https://github.com/nexus462/portfolio",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nexus462/portfolio.git"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint src --ext js,jsx"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.2.1",
+    "vite": "^5.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}

@@ -1,0 +1,74 @@
+name: Commit Notifications
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - closed
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build commit message
+        id: build-message
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            event_type="Push"
+            summary="${{ github.event.head_commit.message }}"
+          else
+            event_type="Pull request"
+            summary="${{ github.event.pull_request.title }}"
+          fi
+          cat <<'EOF' > message.txt
+Repo: ${{ github.repository }}
+Event: $event_type
+Actor: ${{ github.actor }}
+Ref: ${{ github.ref }}
+URL: ${{ github.event.pull_request.html_url || github.event.head_commit.url || github.event.compare }}
+Summary: $summary
+EOF
+      - name: Notify via Telegram
+        if: ${{ secrets.TELEGRAM_BOT_TOKEN && secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          text=$(python3 - <<'PY'
+import os
+with open('message.txt') as f:
+    msg = f.read().strip()
+print(msg)
+PY
+)
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
+            -d parse_mode="HTML" \
+            -d text="$text"
+      - name: Notify via Slack
+        if: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          payload=$(python3 - <<'PY'
+import json
+with open('message.txt') as f:
+    msg = f.read()
+print(json.dumps({'text': msg}))
+PY
+)
+          curl -s -X POST -H 'Content-Type: application/json' --data "$payload" "${{ secrets.SLACK_WEBHOOK_URL }}"
+      - name: Notify via email
+        if: ${{ secrets.SMTP_HOST && secrets.SMTP_USERNAME && secrets.SMTP_PASSWORD && secrets.NOTIFY_EMAIL }}
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.SMTP_HOST }}
+          server_port: ${{ secrets.SMTP_PORT || 587 }}
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: "GitHub notification: ${{ github.repository }}"
+          body: |
+            $(cat message.txt)
+          to: ${{ secrets.NOTIFY_EMAIL }}
+          from: ${{ secrets.EMAIL_FROM || secrets.SMTP_USERNAME }}
